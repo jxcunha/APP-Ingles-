@@ -1,131 +1,137 @@
-// APP Inglês – lições + professora interativa com ChatGPT
+// APP Inglês – Professora interativa com ChatGPT + voz
 
-// -------------------------
-// 1) DADOS DAS LIÇÕES
-// -------------------------
-const lessons = {
-  greetings: [
-    { pt: "Olá", en: "hello" },
-    { pt: "Bom dia", en: "good morning" },
-    { pt: "Boa tarde", en: "good afternoon" },
-    { pt: "Boa noite", en: "good evening" },
-    { pt: "Como você está?", en: "how are you?" },
-    { pt: "Estou bem, obrigada", en: "I am fine, thank you" }
-  ],
-  travel: [
-    { pt: "Onde fica o portão de embarque?", en: "where is the boarding gate?" },
-    { pt: "Eu tenho uma reserva", en: "I have a reservation" },
-    { pt: "Quanto custa a diária?", en: "how much is the room per night?" },
-    { pt: "Eu preciso de um táxi", en: "I need a taxi" }
-  ],
-  clinic: [
-    { pt: "Onde dói?", en: "where does it hurt?" },
-    { pt: "Você tem alergias?", en: "do you have any allergies?" },
-    { pt: "Tome este medicamento", en: "take this medicine" },
-    { pt: "Volte em uma semana", en: "come back in one week" }
-  ],
-  everyday: [
-    { pt: "Eu acordo às sete horas", en: "I wake up at seven o'clock" },
-    { pt: "Eu trabalho em um hospital", en: "I work in a hospital" },
-    { pt: "Eu gosto de estudar inglês", en: "I like to study English" },
-    { pt: "Estou indo para casa", en: "I am going home" }
-  ]
-};
+const chatMessagesEl = document.getElementById("chat-messages");
+const chatInputEl = document.getElementById("chat-input");
+const chatSendBtn = document.getElementById("chat-send");
+const statusEl = document.getElementById("chat-status");
 
-let currentLessonKey = null;
-let currentIndex = 0;
+const listenLastBtn = document.getElementById("btn-listen-last");
+const speakVoiceBtn = document.getElementById("btn-speak-voice");
 
-// Elementos da parte “Duolingo”
-const phrasePtEl = document.getElementById("phrase-pt");
-const phraseEnEl = document.getElementById("phrase-en");
-const feedbackEl = document.getElementById("feedback");
-const statusEl = document.getElementById("status");
+let lastBotReply =
+  "Oi, Ju! Eu sou sua professora de inglês. Você pode falar comigo em português ou inglês que eu te ajudo.";
 
-const listenBtn = document.getElementById("btn-listen");
-const speakBtn = document.getElementById("btn-speak");
-const nextBtn = document.getElementById("btn-next");
-const lessonButtonsContainer = document.getElementById("lesson-buttons");
-
-// -------------------------
-// 2) SELEÇÃO DE LIÇÃO
---------------------------
-lessonButtonsContainer.addEventListener("click", (event) => {
-  const btn = event.target.closest("[data-lesson]");
-  if (!btn) return;
-  const key = btn.dataset.lesson;
-  selectLesson(key, btn);
-});
-
-function selectLesson(key, clickedBtn) {
-  currentLessonKey = key;
-  currentIndex = 0;
-
-  document
-    .querySelectorAll(".lesson-btn")
-    .forEach((b) => b.classList.toggle("active", b === clickedBtn));
-
-  showCurrentPhrase();
+function appendMessage(text, who) {
+  const div = document.createElement("div");
+  div.classList.add("chat-msg");
+  if (who === "me") {
+    div.classList.add("me");
+    div.textContent = text;
+  } else {
+    div.classList.add("bot");
+    div.innerHTML = "<strong>Profa:</strong> " + text;
+  }
+  chatMessagesEl.appendChild(div);
+  chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
 }
 
-function showCurrentPhrase() {
-  if (!currentLessonKey) {
-    phrasePtEl.textContent = "Escolhe uma lição para começar.";
-    phraseEnEl.textContent = "—";
-    feedbackEl.textContent = "";
-    feedbackEl.className = "";
-    return;
+async function sendMessage(text) {
+  const trimmed = text.trim();
+  if (!trimmed) return;
+
+  appendMessage(trimmed, "me");
+  chatInputEl.value = "";
+  statusEl.textContent = "Pensando...";
+
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: trimmed })
+    });
+
+    if (!res.ok) {
+      throw new Error("Erro HTTP " + res.status);
+    }
+
+    const data = await res.json();
+    const reply =
+      (data.reply ||
+        "Desculpa, não consegui responder agora. Tente de novo.") + "";
+
+    lastBotReply = reply;
+    appendMessage(reply, "bot");
+    statusEl.textContent = "";
+  } catch (err) {
+    console.error(err);
+    statusEl.textContent =
+      "Erro ao falar com a professora. Confere a API /api/chat.";
   }
-
-  const list = lessons[currentLessonKey];
-  if (!list || list.length === 0) return;
-
-  const item = list[currentIndex];
-  phrasePtEl.textContent = item.pt;
-  phraseEnEl.textContent = item.en;
-  feedbackEl.textContent = "Tenta repetir em voz alta em inglês.";
-  feedbackEl.className = "";
 }
 
-// -------------------------
-// 3) FALA SINTÉTICA (OUVIR FRASE EM INGLÊS)
-// -------------------------
-listenBtn.addEventListener("click", () => {
-  if (!currentLessonKey) {
-    simpleFlash("Escolhe primeiro uma lição.");
-    return;
-  }
-  const text = lessons[currentLessonKey][currentIndex].en;
-  speakEnglish(text);
+chatSendBtn.addEventListener("click", () => {
+  sendMessage(chatInputEl.value);
 });
 
-function speakEnglish(text) {
+chatInputEl.addEventListener("keydown", (ev) => {
+  if (ev.key === "Enter") {
+    ev.preventDefault();
+    sendMessage(chatInputEl.value);
+  }
+});
+
+// ----- Leitura em voz alta da última resposta -----
+function speakText(text) {
   if (!("speechSynthesis" in window)) {
-    simpleFlash("Seu navegador não suporta leitura em voz alta.");
+    statusEl.textContent =
+      "Seu navegador não suporta leitura em voz alta.";
     return;
   }
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "en-US";
   utterance.rate = 0.95;
-  speechSynthesis.cancel();
-  speechSynthesis.speak(utterance);
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utterance);
 }
 
-// -------------------------
-// 4) RECONHECIMENTO DE VOZ (TREINO DA FRASE)
-// -------------------------
+listenLastBtn.addEventListener("click", () => {
+  if (!lastBotReply) {
+    statusEl.textContent = "Ainda não tenho nenhuma resposta para ler.";
+    return;
+  }
+  speakText(lastBotReply);
+});
+
+// ----- Reconhecimento de voz -----
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 
 if (SpeechRecognition) {
   recognition = new SpeechRecognition();
-  recognition.lang = "en-US";
+  recognition.lang = "pt-BR"; // você pode falar PT ou EN
   recognition.interimResults = false;
   recognition.maxAlternatives = 1;
 
   recognition.onstart = () => {
-    statusEl.textContent = "🎤 Ouvindo... Fala a frase em inglês.";
+    statusEl.textContent = "🎤 Ouvindo... fale com a professora.";
   };
   recognition.onerror = (event) => {
-    statusEl.text
+    statusEl.textContent = "Erro no microfone: " + event.error;
+  };
+  recognition.onend = () => {
+    if (!statusEl.textContent.startsWith("✅")) {
+      statusEl.textContent =
+        "Toque em “Falar com a professora” para tentar de novo.";
+    }
+  };
+  recognition.onresult = (event) => {
+    const spoken = event.results[0][0].transcript.trim();
+    if (spoken) {
+      statusEl.textContent = "✅ Você disse: \"" + spoken + "\"";
+      sendMessage(spoken);
+    }
+  };
+} else {
+  statusEl.textContent =
+    "Seu navegador não suporta reconhecimento de voz (Web Speech API).";
+}
 
+speakVoiceBtn.addEventListener("click", () => {
+  if (!recognition) {
+    statusEl.textContent =
+      "Reconhecimento de voz não disponível neste navegador.";
+    return;
+  }
+  statusEl.textContent = "";
+  recognition.start();
+});

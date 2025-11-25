@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>APP Inglês – Versão Duolingo</title>
+  <title>APP Inglês – Professora Interativa</title>
   <link rel="manifest" href="manifest.json" />
   <style>
     :root {
@@ -45,124 +45,6 @@
       backdrop-filter: blur(6px);
       margin-bottom: 12px;
     }
-    .lessons-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-    .lesson-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-    }
-    .lesson-btn {
-      border: none;
-      border-radius: 14px;
-      padding: 10px 8px;
-      background: #eff6ff;
-      font-size: 0.9rem;
-      font-weight: 600;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      cursor: pointer;
-      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
-    }
-    .lesson-btn span {
-      font-size: 0.75rem;
-      opacity: 0.7;
-      font-weight: 500;
-    }
-    .lesson-btn.active {
-      background: #2563eb;
-      color: #f9fafb;
-      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35);
-    }
-    .lesson-btn:active {
-      transform: translateY(1px);
-      box-shadow: none;
-    }
-
-    /* Cartão de treino (frase PT/EN) */
-    .labels {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      opacity: 0.7;
-      margin-bottom: 4px;
-    }
-    #phrase-pt {
-      font-size: 0.95rem;
-      margin-bottom: 6px;
-    }
-    #phrase-en {
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin-bottom: 10px;
-    }
-    .controls {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
-      flex-wrap: wrap;
-    }
-    button.main-btn {
-      flex: 1;
-      min-width: 120px;
-      border-radius: 999px;
-      border: none;
-      padding: 9px 12px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      background: #22c55e;
-      color: #0f172a;
-      box-shadow: 0 6px 14px rgba(34, 197, 94, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.1s ease;
-    }
-    button.secondary-btn {
-      flex: 1;
-      min-width: 100px;
-      border-radius: 999px;
-      border: none;
-      padding: 9px 12px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      background: #e5e7eb;
-      color: #111827;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.1s ease;
-    }
-    button.main-btn:active,
-    button.secondary-btn:active {
-      transform: translateY(1px);
-      box-shadow: none;
-      opacity: 0.9;
-    }
-    #feedback {
-      font-size: 0.85rem;
-      min-height: 20px;
-    }
-    #feedback.ok { color: #16a34a; }
-    #feedback.error { color: #dc2626; }
-    #status {
-      font-size: 0.75rem;
-      opacity: 0.8;
-      margin-top: 4px;
-    }
-
-    /* ---------- PROFESSORA INTERATIVA (CHAT) --------- */
-
     .chat-header {
       display: flex;
       align-items: center;
@@ -170,8 +52,8 @@
       margin-bottom: 10px;
     }
     .chat-avatar {
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       border-radius: 999px;
       background: linear-gradient(135deg, #22c55e, #2563eb);
       display: flex;
@@ -182,19 +64,18 @@
       font-size: 1.1rem;
     }
     .chat-title {
-      font-size: 0.95rem;
+      font-size: 1rem;
       font-weight: 600;
     }
     .chat-subtitle {
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       opacity: 0.7;
     }
-
     #chat-messages {
       border-radius: 12px;
       background: #f9fafb;
       padding: 8px;
-      max-height: 180px;
+      max-height: 260px;
       overflow-y: auto;
       font-size: 0.85rem;
       margin-bottom: 8px;
@@ -210,44 +91,76 @@
     .chat-msg.bot strong {
       color: #2563eb;
     }
-
     .chat-input-row {
       display: flex;
       gap: 6px;
       margin-top: 4px;
+      margin-bottom: 6px;
     }
     #chat-input {
       flex: 1;
       border-radius: 999px;
       border: none;
       padding: 8px 10px;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       outline: none;
       background: #e5e7eb;
     }
     #chat-send {
       border-radius: 999px;
       border: none;
-      padding: 8px 12px;
-      font-size: 0.85rem;
+      padding: 8px 14px;
+      font-size: 0.9rem;
       font-weight: 600;
       background: #2563eb;
       color: #f9fafb;
       cursor: pointer;
     }
-    #chat-status {
-      font-size: 0.7rem;
-      opacity: 0.7;
-      margin-top: 4px;
+    .voice-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
     }
-
+    .pill-btn {
+      flex: 1;
+      min-width: 130px;
+      border-radius: 999px;
+      border: none;
+      padding: 8px 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    #btn-listen-last {
+      background: #22c55e;
+      color: #0f172a;
+      box-shadow: 0 6px 14px rgba(34, 197, 94, 0.4);
+    }
+    #btn-speak-voice {
+      background: #e5e7eb;
+      color: #111827;
+    }
+    .pill-btn:active {
+      transform: translateY(1px);
+      box-shadow: none;
+      opacity: 0.9;
+    }
+    #chat-status {
+      font-size: 0.75rem;
+      opacity: 0.8;
+      min-height: 18px;
+    }
     footer {
-      margin-top: 4px;
+      margin-top: 8px;
       font-size: 0.7rem;
       text-align: center;
       opacity: 0.7;
     }
-
     @media (prefers-color-scheme: dark) {
       body {
         background: radial-gradient(circle at top, #0f172a, #020617);
@@ -257,21 +170,14 @@
         background: #020617e6;
         box-shadow: 0 10px 25px rgba(0,0,0,0.6);
       }
-      .lesson-btn {
-        background: #111827;
-        color: #e5e7eb;
-      }
-      .lesson-btn.active {
-        background: #2563eb;
-      }
-      button.secondary-btn {
-        background: #111827;
-        color: #e5e7eb;
-      }
       #chat-messages {
         background: #020617;
       }
       #chat-input {
+        background: #111827;
+        color: #e5e7eb;
+      }
+      #btn-speak-voice {
         background: #111827;
         color: #e5e7eb;
       }
@@ -283,66 +189,17 @@
     <header>
       <div>
         <h1>APP Inglês</h1>
-        <span>Versão simples, estilo Duolingo</span>
+        <span>Professora interativa com voz + ChatGPT</span>
       </div>
     </header>
 
-    <!-- 1) SELEÇÃO DE LIÇÃO -->
-    <section class="card">
-      <div class="lessons-title">1. Escolhe uma lição:</div>
-      <div class="lesson-grid" id="lesson-buttons">
-        <button class="lesson-btn" data-lesson="greetings">
-          Saudações
-          <span>hi, good morning…</span>
-        </button>
-        <button class="lesson-btn" data-lesson="travel">
-          Viagem
-          <span>aeroporto, hotel…</span>
-        </button>
-        <button class="lesson-btn" data-lesson="clinic">
-          Consultório
-          <span>sou médica, ok 😄</span>
-        </button>
-        <button class="lesson-btn" data-lesson="everyday">
-          Dia a dia
-          <span>rotina básica</span>
-        </button>
-      </div>
-    </section>
-
-    <!-- 2) TREINO DE FRASE (PT / EN + VOZ) -->
-    <section class="card">
-      <div class="labels">
-        <span>Português</span>
-        <span>Inglês alvo</span>
-      </div>
-      <p id="phrase-pt">Escolhe uma lição para começar.</p>
-      <p id="phrase-en">—</p>
-
-      <div class="controls">
-        <button id="btn-listen" class="main-btn" type="button">
-          ▶ Ouvir em inglês
-        </button>
-        <button id="btn-speak" class="secondary-btn" type="button">
-          🎤 Falar a frase
-        </button>
-        <button id="btn-next" class="secondary-btn" type="button">
-          ➜ Próxima
-        </button>
-      </div>
-
-      <p id="feedback"></p>
-      <p id="status"></p>
-    </section>
-
-    <!-- 3) PROFESSORA INTERATIVA (CHAT GPT) -->
     <section class="card">
       <div class="chat-header">
         <div class="chat-avatar">AI</div>
         <div>
           <div class="chat-title">Professora interativa</div>
           <div class="chat-subtitle">
-            Responde dúvidas, corrige frases e conversa sobre qualquer assunto.
+            Fale sobre qualquer assunto em inglês ou português. Ela corrige, traduz e explica.
           </div>
         </div>
       </div>
@@ -350,7 +207,7 @@
       <div id="chat-messages">
         <div class="chat-msg bot">
           <strong>Profa:</strong> Oi, Ju! Eu sou sua professora de inglês.
-          Pode me mandar frases em português ou inglês que eu te ajudo. 🙂
+          Você pode falar comigo em português ou inglês que eu te ajudo. 🙂
         </div>
       </div>
 
@@ -358,16 +215,26 @@
         <input
           id="chat-input"
           type="text"
-          placeholder="Escreve aqui em PT ou EN..."
+          placeholder="Digite em PT ou EN e clique em Enviar..."
           autocomplete="off"
         />
         <button id="chat-send" type="button">Enviar</button>
       </div>
+
+      <div class="voice-row">
+        <button id="btn-listen-last" class="pill-btn" type="button">
+          ▶ Ouvir última resposta
+        </button>
+        <button id="btn-speak-voice" class="pill-btn" type="button">
+          🎤 Falar com a professora
+        </button>
+      </div>
+
       <div id="chat-status"></div>
     </section>
 
     <footer>
-      Dica: usa fones de ouvido para treinar a pronúncia e a professora ao mesmo tempo.
+      Dica: use fones de ouvido e fale devagar quando usar o microfone.
     </footer>
   </div>
 
@@ -381,4 +248,3 @@
   </script>
 </body>
 </html>
-
