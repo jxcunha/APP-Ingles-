@@ -5,12 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>APP Inglês – Versão Duolingo</title>
   <link rel="manifest" href="manifest.json" />
+
   <style>
     :root {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color-scheme: light dark;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
       min-height: 100vh;
       display: flex;
@@ -18,11 +20,13 @@
       background: radial-gradient(circle at top, #e0f2fe, #e5e7eb);
       color: #111827;
     }
+
     .app {
       width: 100%;
       max-width: 480px;
       padding: 16px;
     }
+
     header {
       display: flex;
       align-items: center;
@@ -37,16 +41,17 @@
       font-size: 0.8rem;
       opacity: 0.7;
     }
+
     .card {
       background: #ffffffcc;
       border-radius: 18px;
       padding: 16px;
       box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
       backdrop-filter: blur(6px);
+      margin-bottom: 14px;
     }
-    .lessons {
-      margin-bottom: 16px;
-    }
+
+    /* ==== LIÇÕES (parte Duolingo) ==== */
     .lessons-title {
       font-size: 0.95rem;
       font-weight: 600;
@@ -84,9 +89,8 @@
       transform: translateY(1px);
       box-shadow: none;
     }
-    .trainer {
-      margin-bottom: 12px;
-    }
+
+    /* ==== TREINO DE FRASE COM VOZ ==== */
     .labels {
       display: flex;
       justify-content: space-between;
@@ -105,6 +109,7 @@
       font-weight: 700;
       margin-bottom: 10px;
     }
+
     .controls {
       display: flex;
       gap: 8px;
@@ -163,12 +168,82 @@
       opacity: 0.8;
       margin-top: 4px;
     }
+
+    /* ==== PROFESSORA INTERATIVA (IA) ==== */
+    .teacher-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .chat-messages {
+      border-radius: 12px;
+      background: #f3f4f6;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 8px;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+    }
+    .msg {
+      padding: 6px 8px;
+      border-radius: 10px;
+      margin-bottom: 6px;
+      line-height: 1.35;
+    }
+    .msg-user {
+      background: #dbeafe;
+      align-self: flex-end;
+    }
+    .msg-ai {
+      background: #e5e7eb;
+    }
+    .msg strong {
+      font-weight: 600;
+    }
+    .chat-input-row {
+      display: flex;
+      gap: 6px;
+      align-items: flex-end;
+      margin-bottom: 4px;
+    }
+    #chat-input {
+      flex: 1;
+      resize: vertical;
+      min-height: 40px;
+      max-height: 80px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      font-size: 0.85rem;
+    }
+    #chat-send {
+      border: none;
+      border-radius: 999px;
+      padding: 9px 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: #2563eb;
+      color: #f9fafb;
+      white-space: nowrap;
+    }
+    #chat-status {
+      font-size: 0.75rem;
+      opacity: 0.8;
+    }
+    .chat-tip {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      margin-top: 4px;
+    }
+
     footer {
-      margin-top: 10px;
+      margin-top: 6px;
       font-size: 0.7rem;
       text-align: center;
       opacity: 0.7;
     }
+
     @media (prefers-color-scheme: dark) {
       body {
         background: radial-gradient(circle at top, #0f172a, #020617);
@@ -189,9 +264,25 @@
         background: #111827;
         color: #e5e7eb;
       }
+      .chat-messages {
+        background: #020617;
+      }
+      .msg-user {
+        background: #1d4ed8;
+        color: #e5e7eb;
+      }
+      .msg-ai {
+        background: #111827;
+      }
+      #chat-input {
+        background: #020617;
+        border-color: #374151;
+        color: #e5e7eb;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="app">
     <header>
@@ -201,7 +292,8 @@
       </div>
     </header>
 
-    <section class="lessons card">
+    <!-- 1. LIÇÕES -->
+    <section class="card">
       <div class="lessons-title">1. Escolhe uma lição:</div>
       <div class="lesson-grid" id="lesson-buttons">
         <button class="lesson-btn" data-lesson="greetings">
@@ -223,7 +315,8 @@
       </div>
     </section>
 
-    <section class="trainer card">
+    <!-- 2. TREINO COM VOZ -->
+    <section class="card">
       <div class="labels">
         <span>Português</span>
         <span>Inglês alvo</span>
@@ -247,18 +340,41 @@
       <p id="status"></p>
     </section>
 
+    <!-- 3. PROFESSORA INTERATIVA (IA) -->
+    <section class="card">
+      <div class="teacher-title">Professora interativa (IA)</div>
+      <p class="chat-tip">
+        Escreve em português ou em inglês. Ela responde em inglês e pode corrigir tuas frases. ✨
+      </p>
+
+      <div id="chat-messages" class="chat-messages">
+        <div class="msg msg-ai">
+          <strong>Prof:</strong> Oi, eu sou tua professora de inglês. Pergunta o que quiser ou manda uma frase para eu corrigir!
+        </div>
+      </div>
+
+      <div class="chat-input-row">
+        <textarea id="chat-input" placeholder="Digite sua dúvida ou frase aqui..."></textarea>
+        <button id="chat-send" type="button">Perguntar</button>
+      </div>
+      <div id="chat-status"></div>
+    </section>
+
     <footer>
-      Dica: use fones de ouvido e fale devagar na parte de voz.
+      Dica: usa fones de ouvido e fala devagar na parte de voz. Para dúvidas, fala com a professora aqui embaixo. 💬
     </footer>
   </div>
 
   <script src="script.js"></script>
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("sw.js").catch(function (err) {
-        console.warn("Service worker não registrado:", err);
-      });
+      navigator.serviceWorker
+        .register("sw.js")
+        .catch(function (err) {
+          console.warn("Service worker não registrado:", err);
+        });
     }
   </script>
 </body>
 </html>
+
