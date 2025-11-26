@@ -1,4 +1,4 @@
-// api/chat.js – versão nova (100% funcional com system)
+// api/chat.js
 import OpenAI from "openai";
 
 export default async function handler(req, res) {
@@ -11,15 +11,17 @@ export default async function handler(req, res) {
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    const { message } = req.body;
+    // Vercel NÃO faz parse automático → corrigido:
+    const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    const { message } = body;
 
     const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",    // pode manter este modelo
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
           content:
-            "Você é uma professora de inglês para a Ju. Corrija frases, traduza, explique, responda curto e de forma clara."
+            "Você é uma professora de inglês da Ju. Responda curto, claro e de forma educativa."
         },
         {
           role: "user",
@@ -36,6 +38,4 @@ export default async function handler(req, res) {
     res.status(500).json({ error: "API error" });
   }
 }
-
-
 
