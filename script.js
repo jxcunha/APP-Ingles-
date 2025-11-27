@@ -15,12 +15,13 @@ let lastBotReply =
 function appendMessage(text, who) {
   const div = document.createElement("div");
   div.classList.add("chat-msg");
-  if (who === "me") div.classList.add("me");
-  if (who === "bot") div.classList.add("bot");
-  div.innerHTML =
-    who === "bot"
-      ? `<strong>Profa:</strong> ${text}`
-      : text;
+  if (who === "me") {
+    div.classList.add("me");
+    div.textContent = text;
+  } else {
+    div.classList.add("bot");
+    div.innerHTML = "<strong>Profa:</strong> " + text;
+  }
   chatMessagesEl.appendChild(div);
   chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
 }
@@ -60,7 +61,6 @@ async function sendMessage(rawText) {
   }
 }
 
-// Eventos de envio de texto
 chatSendBtn.addEventListener("click", () => {
   sendMessage(chatInputEl.value);
 });
@@ -173,4 +173,5 @@ speakVoiceBtn.addEventListener("click", () => {
   statusEl.textContent = "";
   recognition.start();
 });
+
 
