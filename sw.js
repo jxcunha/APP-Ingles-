@@ -1,4 +1,4 @@
-const CACHE_NAME = "app-ingles-prof-v1";
+const CACHE_NAME = "app-ingles-prof-v2";  // <<< mudei para v2
 const OFFLINE_URLS = [
   "./",
   "./index.html",
@@ -34,3 +34,4 @@ self.addEventListener("fetch", (event) => {
     })
   );
 });
+
