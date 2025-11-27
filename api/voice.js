@@ -28,8 +28,8 @@ export default async function handler(req, res) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini-tts",   // modelo de TTS da OpenAI :contentReference[oaicite:0]{index=0}
-        voice: "alloy",             // pode trocar p/ "verse", "ash", etc.
+        model: "gpt-4o-mini-tts",
+        voice: "alloy",
         input: text,
         format: "mp3",
       }),
@@ -52,4 +52,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "API voice error" });
   }
 }
+
 
