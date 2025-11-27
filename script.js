@@ -11,33 +11,34 @@ const speakVoiceBtn = document.getElementById("btn-speak-voice");
 let lastBotReply =
   "Oi, Ju! Eu sou sua professora de inglês. Você pode falar comigo em português ou inglês que eu te ajudo.";
 
+// ----- Utilitário para mostrar mensagens no chat -----
 function appendMessage(text, who) {
   const div = document.createElement("div");
   div.classList.add("chat-msg");
-  if (who === "me") {
-    div.classList.add("me");
-    div.textContent = text;
-  } else {
-    div.classList.add("bot");
-    div.innerHTML = "<strong>Profa:</strong> " + text;
-  }
+  if (who === "me") div.classList.add("me");
+  if (who === "bot") div.classList.add("bot");
+  div.innerHTML =
+    who === "bot"
+      ? `<strong>Profa:</strong> ${text}`
+      : text;
   chatMessagesEl.appendChild(div);
   chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
 }
 
-async function sendMessage(text) {
-  const trimmed = text.trim();
-  if (!trimmed) return;
+// ----- Enviar mensagem para a API de chat -----
+async function sendMessage(rawText) {
+  const text = (rawText || "").trim();
+  if (!text) return;
 
-  appendMessage(trimmed, "me");
+  appendMessage(text, "me");
   chatInputEl.value = "";
-  statusEl.textContent = "Pensando...";
+  statusEl.textContent = "Profa está pensando...";
 
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: trimmed })
+      body: JSON.stringify({ message: text }),
     });
 
     if (!res.ok) {
@@ -59,6 +60,7 @@ async function sendMessage(text) {
   }
 }
 
+// Eventos de envio de texto
 chatSendBtn.addEventListener("click", () => {
   sendMessage(chatInputEl.value);
 });
@@ -70,19 +72,53 @@ chatInputEl.addEventListener("keydown", (ev) => {
   }
 });
 
-// ----- Leitura em voz alta da última resposta -----
-function speakText(text) {
-  if (!("speechSynthesis" in window)) {
+// ----- Leitura em voz alta usando a voz neural da OpenAI -----
+async function speakText(text) {
+  const cleanText = (text || "").trim();
+  if (!cleanText) return;
+
+  statusEl.textContent = "Gerando áudio...";
+
+  try {
+    const res = await fetch("/api/voice", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: cleanText }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Erro HTTP TTS " + res.status);
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+
+    audio.onended = () => {
+      URL.revokeObjectURL(url);
+      statusEl.textContent = "";
+    };
+
+    await audio.play();
+  } catch (err) {
+    console.error("Erro no TTS da OpenAI, usando fallback do navegador:", err);
     statusEl.textContent =
-      "Seu navegador não suporta leitura em voz alta.";
-    return;
+      "Não consegui usar a voz natural agora. Vou usar a voz do navegador.";
+
+    // Fallback: Web Speech API (voz do navegador)
+    if ("speechSynthesis" in window) {
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.rate = 0.95;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    } else {
+      statusEl.textContent =
+        "Seu navegador não suporta leitura em voz alta.";
+    }
   }
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 0.95;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(utterance);
 }
 
+// Botão "Ouvir última resposta"
 listenLastBtn.addEventListener("click", () => {
   if (!lastBotReply) {
     statusEl.textContent = "Ainda não tenho nenhuma resposta para ler.";
@@ -91,41 +127,43 @@ listenLastBtn.addEventListener("click", () => {
   speakText(lastBotReply);
 });
 
-// ----- Reconhecimento de voz -----
-const SpeechRecognition =
-  window.SpeechRecognition || window.webkitSpeechRecognition;
+// ----- Reconhecimento de voz (entrada por fala) -----
 let recognition = null;
 
-if (SpeechRecognition) {
+if ("SpeechRecognition" in window || "webkitSpeechRecognition" in window) {
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
   recognition = new SpeechRecognition();
-  recognition.lang = "pt-BR"; // você pode falar PT ou EN
+  recognition.lang = "pt-BR";
   recognition.interimResults = false;
   recognition.maxAlternatives = 1;
 
   recognition.onstart = () => {
-    statusEl.textContent = "🎤 Ouvindo... fale com a professora.";
+    statusEl.textContent = "Ouvindo... fale devagar.";
   };
-  recognition.onerror = (event) => {
-    statusEl.textContent = "Erro no microfone: " + event.error;
-  };
+
   recognition.onend = () => {
-    if (!statusEl.textContent.startsWith("✅")) {
-      statusEl.textContent =
-        "Toque em “Falar com a professora” para tentar de novo.";
+    if (statusEl.textContent.startsWith("Ouvindo")) {
+      statusEl.textContent = "";
     }
   };
+
+  recognition.onerror = (event) => {
+    console.error("Erro no reconhecimento de voz:", event.error);
+    statusEl.textContent =
+      "Erro no reconhecimento de voz: " + event.error;
+  };
+
   recognition.onresult = (event) => {
-    const spoken = event.results[0][0].transcript.trim();
-    if (spoken) {
-      statusEl.textContent = "✅ Você disse: \"" + spoken + "\"";
-      sendMessage(spoken);
-    }
+    const transcript = event.results[0][0].transcript;
+    chatInputEl.value = transcript;
+    sendMessage(transcript);
   };
 } else {
-  statusEl.textContent =
-    "Seu navegador não suporta reconhecimento de voz (Web Speech API).";
+  console.warn("Web Speech API não disponível neste navegador.");
 }
 
+// Botão "Falar com a professora" (entrada de voz)
 speakVoiceBtn.addEventListener("click", () => {
   if (!recognition) {
     statusEl.textContent =
@@ -135,3 +173,4 @@ speakVoiceBtn.addEventListener("click", () => {
   statusEl.textContent = "";
   recognition.start();
 });
+
